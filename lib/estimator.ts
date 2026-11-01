@@ -2,7 +2,7 @@
  * NOTE: every price is an INDICATIVE PLACEHOLDER (INR) to be calibrated by
  * sales team. They live in one table, so changing them is a data edit.
  */
-import { CATALOG, Estimate, Selection } from "./types";
+import { CATALOG, Estimate, Selection, ContactInfo, featureLabel } from "./types";
 import { COMPLEXITY, FEATURE_INDEX, TIMELINE } from "./types";
 import { isService, isFeature, isComplexity, isTimeline } from "./types";
 
@@ -84,4 +84,53 @@ export function estimate(input: unknown): Estimate | null {
         weeksMax: Math.max(3, Math.ceil(wMax * timeMult)),
         breakdown,
     }
+}
+
+export function formatINR(n: number): string {
+    const trim = (x: number) => String(parseFloat(x.toFixed(2)));
+
+    if(n >= 1e7) {
+        return `₹${trim(n / 1e7)}Cr`;
+    }
+
+    if(n >= 1e5) {
+        return `₹${trim(n / 1e5)}L`;
+    }
+
+    return `₹${Math.round(n).toLocaleString("en-IN")}`;
+}
+
+export function buildBrief(input: unknown, contact: ContactInfo = {}): string {
+    const selection = normalizeSelection(input);
+    const est = estimate(selection);
+    const lines = ['PROJECT BRIEF', '============'];
+
+    if(contact.name){
+        lines.push(`From: ${contact.name} ${contact.company ? ` (${contact.company})`: ''}`);
+    }
+
+    lines.push('', 'Services:');
+    for (const s of selection.services){
+        lines.push(`  - ${CATALOG[s].label}`);
+    }
+
+    if(selection.features.length){
+        lines.push('', 'Requested capabilities:');
+        for (const f of selection.features){
+            lines.push(`  - ${featureLabel(f)}`)
+        }
+    }
+
+    lines.push('', `Scope: ${COMPLEXITY[selection.complexity].label}`, `Timeline: ${TIMELINE[selection.timeline].label}`);
+
+    if(est){
+        lines.push("", `Indicative budget: ${formatINR(est.min)} – ${formatINR(est.max)} `);
+        lines.push(`Indicative duration: ${est.weeksMin} – ${est.weeksMax} weeks`);
+    }
+
+    if(contact.message){
+        lines.push('', 'Notes: ', contact.message);
+    }
+
+    return lines.join('\n');
 }

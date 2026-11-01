@@ -184,6 +184,12 @@ export interface Estimate {
     }[];
 }
 
+export interface ContactInfo {
+    name?: string;
+    company?: string;
+    message?: string;
+}
+
 export const SERVICE_IDS = Object.keys(CATALOG) as ServiceId[];
 
 export const FEATURE_INDEX: Record<string, { service: ServiceId } & Feature> = {};
@@ -192,6 +198,8 @@ for (const s of SERVICE_IDS){
         FEATURE_INDEX[id] = { service: s, ...f };
     }
 }
+
+export const featureLabel = (id: string): string => FEATURE_INDEX[id]?.label ?? id;
 
 export const isService = (v: unknown): v is ServiceId => typeof v === 'string' && Object.hasOwn(CATALOG, v);
 export const isFeature = (v: unknown): v is FeatureId => typeof v === 'string' && Object.hasOwn(FEATURE_INDEX, v);
