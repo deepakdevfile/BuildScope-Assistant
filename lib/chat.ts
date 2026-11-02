@@ -98,18 +98,36 @@ export function geminiProvider(opts: { apiKey: string; model: string; fetchImpl?
                     parts: [{ text: systemPrompt() }],
                   },
                   // 2. Chat history / messages
-                  contents: convo,
+                  contents: convo.map((msg) => ({
+                    role: msg.role === "assistant" ? "model" : "user",
+                    parts: [{ text: msg.content }],
+                  })),
                   // 3. Generation configuration
                   generationConfig: {
                     maxOutputTokens: 400,
                   },
                   // 4. Tools (if applicable)
-                  tools: [UPDATE_BRIEF_TOOL],
+                  tools: [
+                    {
+                      functionDeclarations: [
+                        {
+                          name: UPDATE_BRIEF_TOOL.name,
+                          description: UPDATE_BRIEF_TOOL.description,
+                          parameters: UPDATE_BRIEF_TOOL.input_schema
+                        },
+                      ],
+                    },
+                  ],
                 }),
               },
             );
 
             if(!res.ok){
+                const errorBody = await res.json();
+                console.error(
+                  "Gemini API Error Details:",
+                  JSON.stringify(errorBody, null, 2),
+                );
                 throw new Error(`Model API error ${res.status}`);
             }
 
