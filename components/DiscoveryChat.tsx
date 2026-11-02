@@ -2,8 +2,8 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { type Selection, DEFAULT_SELECTION } from "@/lib/types";
-
 import { ChatMessage, LIMITS } from '@/lib/types';
+import LeadForm from './LeadForm';
 
 const GREETING: ChatMessage = {
     role: 'assistant',
@@ -18,6 +18,7 @@ export default function DiscoveryChat(){
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showForm, setShowForm] = useState(false);
 
     const userTurns = messages.filter((m) => m.role === 'user').length;
     const atLimit = userTurns >= MAX_USER_TURNS;
@@ -57,6 +58,13 @@ export default function DiscoveryChat(){
         }
     }
 
+    const transcript = messages.slice(
+      messages.findIndex((m) => m.role === "user") >= 0
+        ? messages.findIndex((m) => m.role === "user")
+        : messages.length,
+    );
+    const canSend = selection.services.length > 0;
+
     return (
       <div>
         <section>
@@ -84,32 +92,55 @@ export default function DiscoveryChat(){
           )}
           {atLimit && (
             <p>
-              Conversation limit reached. Please send your
-              brief so the team can continue with you.{" "}
+              Conversation limit reached. Please send your brief so the team can
+              continue with you.{" "}
             </p>
           )}
 
           <form onSubmit={send}>
             <label htmlFor="chat-input">Your message</label>
-            <input 
-                id="chat-input" 
-                type="text" 
-                value={input}
-                maxLength={LIMITS.maxChars}
-                placeholder={atLimit ? 'Conversation limit reached' : 'e.g. We need an AI agent to handle customer calls'}
-                onChange={(e) => setInput(e.target.value)}
-                disabled={loading || atLimit}
-                autoComplete='off'
+            <input
+              id="chat-input"
+              type="text"
+              value={input}
+              maxLength={LIMITS.maxChars}
+              placeholder={
+                atLimit
+                  ? "Conversation limit reached"
+                  : "e.g. We need an AI agent to handle customer calls"
+              }
+              onChange={(e) => setInput(e.target.value)}
+              disabled={loading || atLimit}
+              autoComplete="off"
             />
-            <button type='submit' disabled={loading || atLimit || !input.trim()}>Send</button>
+            <button
+              type="submit"
+              disabled={loading || atLimit || !input.trim()}
+            >
+              Send
+            </button>
           </form>
 
           <div>
             <Link href="/estimate">Prefer a form ? Use the estimator</Link>
-            <button>Send brief to Cynbit</button>
+            <button
+              type="button"
+              disabled={!canSend}
+              onClick={() => setShowForm(true)}
+            >
+              Send brief to Cynbit
+            </button>
           </div>
 
-          <div>if need to show form then LeadForm component</div>
+          {showForm && (
+            <div>
+              <LeadForm
+                selection={selection}
+                source="chat"
+                transcript={transcript}
+              />
+            </div>
+          )}
         </section>
         EstimatePanel component
       </div>
