@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { type Selection, DEFAULT_SELECTION } from "@/lib/types";
 import { ChatMessage, LIMITS } from '@/lib/types';
 import EstimatePanel from './EstimatePanel';
 import LeadForm from './LeadForm';
+import { normalizeSelection } from '@/lib/estimator';
 
 const GREETING: ChatMessage = {
     role: 'assistant',
@@ -21,9 +22,14 @@ export default function DiscoveryChat(){
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
+    const logRef = useRef<HTMLDivElement>(null);
 
     const userTurns = messages.filter((m) => m.role === 'user').length;
     const atLimit = userTurns >= MAX_USER_TURNS;
+
+    useEffect(() => {
+        logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
+    }, [messages, loading]);
 
     async function send(ev: React.SubmitEvent){
         ev.preventDefault();
@@ -39,7 +45,6 @@ export default function DiscoveryChat(){
         setError('');
         setLoading(true);
 
-        // API call to backend 
         try {
             const payload = next.slice(next.findIndex((m) => m.role === "user"));
             const res = await fetch("/api/chat", {
@@ -53,6 +58,7 @@ export default function DiscoveryChat(){
                 throw new Error(data.error ?? 'Request failed'); 
             }
             setMessage([...next, { role: 'assistant', content: data.reply }]);
+            setSelection(normalizeSelection(data.selection));
         } catch(e){
             setError(e instanceof Error ? e.message : 'Something went wrong.');
         } finally {
@@ -70,7 +76,7 @@ export default function DiscoveryChat(){
     return (
       <div>
         <section>
-          <div>
+          <div ref={logRef} role='log'>
             {messages.map((m, i) => (
               <div key={i}>
                 <span>{m.role === "user" ? "You" : "Assistant"} </span>
