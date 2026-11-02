@@ -1,3 +1,5 @@
+import 
+
 export default function Home() {
   return (
     <>
@@ -10,7 +12,7 @@ export default function Home() {
           to Cynbit&apos;s architects.
         </p>
       </section>
-      Chat Component
+      <DiscoveryChat />
     </>
   );
 }
