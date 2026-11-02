@@ -3,8 +3,8 @@ import DiscoveryChat from "@/components/DiscoveryChat";
 export default function Home() {
   return (
     <>
-      <section>
-        <p>Project Discovery Assistant</p>
+      <section className="hero">
+        <p className="eyebrow">Project Discovery Assistant</p>
         <h1>Describe your idea. We&apos;ll shape the brief.</h1>
         <p className="lead">
           Chat with our assistant about what you want to build. It builds a

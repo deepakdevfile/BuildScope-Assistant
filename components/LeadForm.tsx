@@ -110,14 +110,15 @@ export default function LeadForm({
 
   if (done) {
     return (
-      <div>
+      <div className="success" role="status">
         <h2>Brief received. Thank you!</h2>
-        <p>
-          Reference <span>{done.id}</span>. Our team will reach out within 24
-          hours.
+        <p className="sub">
+          Reference <span className="ref">{done.id}</span>. Our team will reach
+          out within 24 hours.
         </p>
-        <pre>{done.brief}</pre>
+        <pre className="brief">{done.brief}</pre>
         <button
+          className="btn"
           type="button"
           onClick={() =>
             navigator.clipboard?.writeText(done.brief).catch(() => {})
@@ -153,7 +154,7 @@ export default function LeadForm({
     };
 
     return (
-      <div>
+      <div className="field">
         <label htmlFor={`f-${k}`}>
           {label}
           {opts.optional && <span> (optional)</span>}
@@ -163,7 +164,9 @@ export default function LeadForm({
         ) : (
           <input type={opts.type ?? "text"} {...common} />
         )}
-        <p id={`e-${k}`}>{err ?? ""}</p>
+        <p className="err" id={`e-${k}`}>
+          {err ?? ""}
+        </p>
       </div>
     );
   };
@@ -171,10 +174,18 @@ export default function LeadForm({
   return (
     <form onSubmit={onSubmit} noValidate>
       <h2>Where should we send your brief?</h2>
-      <p>We reply within 24 hours with a tailored plan.</p>
-      {banner && <div role="alert">{banner}</div>}
-      {errors.services && <div role="alert">{errors.services}</div>}
-      <div>
+      <p className="sub">We reply within 24 hours with a tailored plan.</p>
+      {banner && (
+        <div className="status bad" role="alert">
+          {banner}
+        </div>
+      )}
+      {errors.services && (
+        <div className="status bad" role="alert">
+          {errors.services}
+        </div>
+      )}
+      <div className="row2">
         {input("name", "Full name", { max: 80, ac: "name" })}
         {input("email", "Email address", {
           type: "email",
@@ -183,7 +194,7 @@ export default function LeadForm({
         })}
       </div>
 
-      <div>
+      <div className="row2">
         {input("company", "Company", {
           max: 100,
           ac: "organization",
@@ -203,7 +214,7 @@ export default function LeadForm({
         area: true,
       })}
 
-      <div aria-hidden='true'>
+      <div className="hp" aria-hidden="true">
         <label htmlFor="f-website">Website</label>
         <input
           id="f-website"
@@ -216,7 +227,7 @@ export default function LeadForm({
         />
       </div>
 
-      <button type="submit" disabled={sending}>
+      <button className="btn primary" type="submit" disabled={sending}>
         {sending ? "Sending..." : "Send brief"}
       </button>
     </form>
