@@ -1,4 +1,4 @@
-import 
+import DiscoveryChat from "@/components/DiscoveryChat";
 
 export default function Home() {
   return (

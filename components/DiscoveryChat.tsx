@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
-import type { Selection, DEFAULT_SELECTION } from "@/lib/types";
+import { type Selection, DEFAULT_SELECTION } from "@/lib/types";
 
 import { ChatMessage, LIMITS } from '@/lib/types';
 
