@@ -190,6 +190,11 @@ export interface ContactInfo {
     message?: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export const SERVICE_IDS = Object.keys(CATALOG) as ServiceId[];
 
 export const FEATURE_INDEX: Record<string, { service: ServiceId } & Feature> = {};
