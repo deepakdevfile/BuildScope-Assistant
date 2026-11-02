@@ -203,7 +203,7 @@ export default function LeadForm({
         area: true,
       })}
 
-      <div>
+      <div aria-hidden='true'>
         <label htmlFor="f-website">Website</label>
         <input
           id="f-website"

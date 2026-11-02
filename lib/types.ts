@@ -283,17 +283,44 @@ export const UPDATE_BRIEF_TOOL = {
   },
 };
 
-
 export interface TextBlock {
-  type: 'text';
+  type: "text";
   text: string;
 }
 
 export interface ToolUseBlock {
-  type: 'tool_use';
-  id: string; 
+  type: "tool_use";
+  id: string;
   name: string;
   input: unknown;
 }
 
 export type Block = TextBlock | ToolUseBlock;
+
+export interface HandlerResult {
+  status: number;
+  json: Record<string, unknown>;
+}
+
+export interface TranscriptMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface Lead {
+  name: string;
+  email: string; 
+  company: string;
+  phone: string;
+  message: string;
+  source: 'wizard' | 'chat';
+  selection: Selection;
+  transcript: TranscriptMessage[];
+}
+
+export interface StoredLead extends Lead {
+  id: string;
+  createdAt: string;
+  estimate: Estimate | null;
+  brief: string;
+}
