@@ -1,8 +1,10 @@
+'use client';
 
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { type Selection, DEFAULT_SELECTION } from "@/lib/types";
 import { ChatMessage, LIMITS } from '@/lib/types';
+import EstimatePanel from './EstimatePanel';
 import LeadForm from './LeadForm';
 
 const GREETING: ChatMessage = {
@@ -142,7 +144,7 @@ export default function DiscoveryChat(){
             </div>
           )}
         </section>
-        EstimatePanel component
+        <EstimatePanel selection={selection} />
       </div>
     );
 }
