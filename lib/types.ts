@@ -157,6 +157,12 @@ export const TIMELINE = {
     },
 } as const;
 
+export const LIMITS = {
+  maxMessages: 24,
+  maxChars: 1000,
+  maxToolRounds: 3
+} as const;
+
 export type ServiceId = keyof typeof CATALOG;
 export type ComplexityId = keyof typeof COMPLEXITY;
 export type TimelineId = keyof typeof TIMELINE;
@@ -210,3 +216,10 @@ export const isService = (v: unknown): v is ServiceId => typeof v === 'string' &
 export const isFeature = (v: unknown): v is FeatureId => typeof v === 'string' && Object.hasOwn(FEATURE_INDEX, v);
 export const isComplexity = (v: unknown): v is ComplexityId => typeof v === 'string' && Object.hasOwn(COMPLEXITY, v);
 export const isTimeline = (v: unknown): v is TimelineId => typeof v === 'string' && Object.hasOwn(TIMELINE, v);
+
+export const DEFAULT_SELECTION: Selection = {
+  services: [],
+  features: [],
+  complexity: 'mvp',
+  timeline: 'standard',
+};
