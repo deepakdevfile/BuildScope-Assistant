@@ -154,10 +154,10 @@ export function geminiProvider(opts: {
         const errorBody = res
           ? await res.json()
           : { error: { message: "No response received" } };
-        console.error(
-          "Gemini API Error Details:",
-          JSON.stringify(errorBody, null, 2),
-        );
+        // console.error(
+        //   "Gemini API Error Details:",
+        //   JSON.stringify(errorBody, null, 2),
+        // );
         throw new Error(`Model API error ${res ? res.status : 500}`);
       }
 
