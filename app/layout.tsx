@@ -3,9 +3,9 @@ import { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Project Discovery | Cynbit Technologies",
+  title: "BuildScope | Cynbit Technologies",
   description:
-    "Tell Cynbit what you want to build. Chat with our Project Discovery Assistant or use the estimator to get an indicative budget and timeline.",
+    "Tell Cynbit what you want to build. Chat with our BuildScope Assistant or use the estimator to get an indicative budget and timeline.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <span className="brand">
               Cynbit<span className="dot">.</span>
             </span>
-            <span className="tag">Prototype · Project Discovery</span>
+            <span className="tag">Prototype · BuildScope</span>
           </div>
         </header>
         <main id="main" className="wrap">{children}</main>

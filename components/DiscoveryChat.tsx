@@ -11,7 +11,7 @@ import { normalizeSelection } from "@/lib/estimator";
 const GREETING: ChatMessage = {
   role: "assistant",
   content:
-    "Hi! I'm Cynbit's Project Discovery Assistant. Tell me what you'd like to build or automate, and I'll help shape a brief for our team.",
+    "Hi! I'm Cynbit's BuildScope Assistant. Tell me what you'd like to build or automate, and I'll help shape a brief for our team.",
 };
 
 const MAX_USER_TURNS = 12;
@@ -80,7 +80,7 @@ export default function DiscoveryChat() {
 
   return (
     <div className="layout">
-      <section className="card chat" aria-label="Project Discovery Assistant">
+      <section className="card chat" aria-label="BuildScope Assistant">
         <div
           className="log"
           ref={logRef}
