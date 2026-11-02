@@ -107,8 +107,8 @@ export default function DiscoveryChat() {
 
         {error && (
           <div className="status bad" role="alert">
-            {error} You can also
-            <Link href="/estimate">use the step-by-step estimator</Link>.
+            {error} You can also 
+            <Link href="/estimate"> use the step-by-step estimator</Link>.
           </div>
         )}
         {atLimit && (

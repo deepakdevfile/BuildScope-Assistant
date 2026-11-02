@@ -76,88 +76,128 @@ export function validateMessages(input: unknown): ChatMessage[] | null{
 }
 
 
-export function geminiProvider(opts: { apiKey: string; model: string; fetchImpl?: typeof fetch }): ChatProvider{
-    const doFetch = opts.fetchImpl ?? fetch;
-    return async (messages, selection) => {
-        const convo: ApiMessage[] = messages.map((m) => ({ role: m.role, content: m.content}));
-        let sel = selection;
-        let reply = '';
+export function geminiProvider(opts: {
+  apiKey: string;
+  model: string;
+  fetchImpl?: typeof fetch;
+}): ChatProvider {
+  const doFetch = opts.fetchImpl ?? fetch;
+  return async (messages, selection) => {
+    const convo: ApiMessage[] = messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    let sel = selection;
+    let reply = "";
 
-        for(let round = 0; round <= LIMITS.maxToolRounds; round++){
-            const res = await doFetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${opts.model}:generateContent`,
-              {
-                method: "POST",
-                headers: {
-                  "content-type": "application/json",
-                  "x-goog-api-key": opts.apiKey,
-                },
-                body: JSON.stringify({
-                  // 1. System instructions
-                  system_instruction: {
-                    parts: [{ text: systemPrompt() }],
-                  },
-                  // 2. Chat history / messages
-                  contents: convo.map((msg) => ({
-                    role: msg.role === "assistant" ? "model" : "user",
-                    parts: [{ text: msg.content }],
-                  })),
-                  // 3. Generation configuration
-                  generationConfig: {
-                    maxOutputTokens: 400,
-                  },
-                  // 4. Tools (if applicable)
-                  tools: [
+    for (let round = 0; round <= LIMITS.maxToolRounds; round++) {
+      let res: Response | undefined;
+      let attempt = 0;
+      const maxRetries = 3;
+      let delay = 1000; // Start with 1 second delay
+
+      // Retry loop specifically targeting 503 errors
+      while (attempt <= maxRetries) {
+        res = await doFetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${opts.model}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-goog-api-key": opts.apiKey,
+            },
+            body: JSON.stringify({
+              // 1. System instructions
+              system_instruction: {
+                parts: [{ text: systemPrompt() }],
+              },
+              // 2. Chat history / messages
+              contents: convo.map((msg) => ({
+                role: msg.role === "assistant" ? "model" : "user",
+                parts: [{ text: msg.content }],
+              })),
+              // 3. Generation configuration
+              generationConfig: {
+                maxOutputTokens: 400,
+              },
+              // 4. Tools (if applicable)
+              tools: [
+                {
+                  functionDeclarations: [
                     {
-                      functionDeclarations: [
-                        {
-                          name: UPDATE_BRIEF_TOOL.name,
-                          description: UPDATE_BRIEF_TOOL.description,
-                          parameters: UPDATE_BRIEF_TOOL.input_schema
-                        },
-                      ],
+                      name: UPDATE_BRIEF_TOOL.name,
+                      description: UPDATE_BRIEF_TOOL.description,
+                      parameters: UPDATE_BRIEF_TOOL.input_schema,
                     },
                   ],
-                }),
-              },
-            );
+                },
+              ],
+            }),
+          },
+        );
 
-            if(!res.ok){
-                const errorBody = await res.json();
-                console.error(
-                  "Gemini API Error Details:",
-                  JSON.stringify(errorBody, null, 2),
-                );
-                throw new Error(`Model API error ${res.status}`);
-            }
-
-            const data = (await res.json()) as { content?: Block[]; stop_reason?: string };
-            const blocks = data.content ?? [];
-
-            const text = blocks.filter((b): b is TextBlock => b.type === 'text').map((b) => b.text).join('').trim();
-            if(text){
-                reply = text;
-            }
-
-            const calls = blocks.filter((b): b is ToolUseBlock => b.type === 'tool_use');
-            if(data.stop_reason !== 'tool_use' || calls.length === 0){
-                break;
-            }
-
-            convo.push({ role: 'assistant', content: blocks });
-            const results = calls.map((c) => {
-                if(c.name === 'update_brief'){
-                    sel = applyBriefUpdate(sel, c.input)
-                }
-            });
-
-            convo.push({ role: 'user', content: results });
+        // If a 503 is encountered and we haven't exhausted our retries, wait and retry
+        if (res.status === 503 && attempt < maxRetries) {
+          attempt++;
+          console.warn(
+            `Model experiencing high demand (503). Retrying attempt ${attempt}/${maxRetries} in ${delay}ms...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2; // Double the wait time for exponential backoff
+          continue;
         }
 
-        return {
-            reply: reply || 'Could you tell me a bit more about what like to build?', selection: sel
-        };
+        break; // Exit retry loop for any other status code (success or non-503 error)
+      }
+
+      if (!res || !res.ok) {
+        const errorBody = res
+          ? await res.json()
+          : { error: { message: "No response received" } };
+        console.error(
+          "Gemini API Error Details:",
+          JSON.stringify(errorBody, null, 2),
+        );
+        throw new Error(`Model API error ${res ? res.status : 500}`);
+      }
+
+      const data = (await res.json()) as {
+        content?: Block[];
+        stop_reason?: string;
+      };
+      const blocks = data.content ?? [];
+
+      const text = blocks
+        .filter((b): b is TextBlock => b.type === "text")
+        .map((b) => b.text)
+        .join("")
+        .trim();
+      if (text) {
+        reply = text;
+      }
+
+      const calls = blocks.filter(
+        (b): b is ToolUseBlock => b.type === "tool_use",
+      );
+      if (data.stop_reason !== "tool_use" || calls.length === 0) {
+        break;
+      }
+
+      convo.push({ role: "assistant", content: blocks });
+      const results = calls.map((c) => {
+        if (c.name === "update_brief") {
+          sel = applyBriefUpdate(sel, c.input);
+        }
+      });
+
+      convo.push({ role: "user", content: results });
+    }
+
+    return {
+      reply: reply || "Could you tell me a bit more about what like to build?",
+      selection: sel,
     };
+  };
 }
 
 const KEYWORDS: { re: RegExp; update: (s: Selection) => Selection }[] = [
